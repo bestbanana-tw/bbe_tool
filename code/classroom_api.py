@@ -1,8 +1,8 @@
-# mApi = API()
-# mApi.get_set_course('369311598141')
-# mApi.set_courseWork()
+# from jieba_bbe.code.classroom_api import mApi
+# from importlib import reload
+# reload(mApi)
 # print(mApi.courseWork)
-# review_game_all = mApi.get_answer(2)
+# print(mApi.get_answer(2))
 
 from __future__ import print_function
 import os.path
@@ -11,7 +11,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-
+import pandas as pd
 
 class API:
   SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
@@ -101,3 +101,7 @@ class API:
     else:
       if 'nextPageToken' in r: return [v.get("shortAnswerSubmission",{"answer":""}).get("answer","") for v in ls] + self.get_answer(i_work=i_work,token=r['nextPageToken'])
       else: return [v.get("shortAnswerSubmission",{"answer":""}).get("answer","") for v in ls]
+
+mApi = API()
+mApi.get_set_course('369311598141')
+mApi.set_courseWork()
