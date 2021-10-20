@@ -1,8 +1,13 @@
-# from jieba_bbe.code.classroom_api import mApi
+# from jieba_bbe.code.classroom_api import CAPI
 # from importlib import reload
-# reload(mApi)
-# print(mApi.courseWork)
-# print(mApi.get_answer(2))
+# reload(CAPI)
+# mApi = CAPI("/content/drive/MyDrive/course/1101/token.json","/content/drive/MyDrive/course/1101/credentials.json")
+# courses = mApi.get_course()
+# course_work = mApi.set_courseWork('369311598141')
+# reviews = mApi.get_review(2)
+# display(courses)
+# print(course_work)
+# print(reviews)
 
 from __future__ import print_function
 import os.path
@@ -13,44 +18,42 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 import pandas as pd
 
-class API:
+class CAPI:
   SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
           'https://www.googleapis.com/auth/classroom.rosters.readonly',
           'https://www.googleapis.com/auth/classroom.rosters',
           'https://www.googleapis.com/auth/classroom.student-submissions.students.readonly',
          ]
 
-  def __init__(self):
+  def __init__(self,path_token,path_credential):
     creds = None
-    path_t = "/content/drive/MyDrive/course/1101/token.json";
-    path_c = "/content/drive/MyDrive/course/1101/credentials.json";
-    if os.path.exists(path_t):
-        creds = Credentials.from_authorized_user_file(path_t, self.SCOPES)
+    if os.path.exists(path_token):
+        creds = Credentials.from_authorized_user_file(path_token, self.SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                path_c, self.SCOPES)
+                path_credential, self.SCOPES)
             creds = flow.run_local_server(port=0)
-        with open(path_t, 'w') as token:
+        with open(path_token, 'w') as token:
             token.write(creds.to_json())
     self.service = build('classroom', 'v1', credentials=creds)
   
-  def get_set_course(self,id=""):
-    if id: self.id_course = id
-    else:
-      r = self.service.courses().list(pageSize=30).execute()
-      df_c = pd.DataFrame(r['courses'])
-      df_c = df_c.loc[:,['id','name','section']]
-      display(df_c)
+  def get_course(self)
+    r = self.service.courses().list(pageSize=30).execute()
+    df_c = pd.DataFrame(r['courses'])
+    df_c = df_c.loc[:,['id','name','section']]
+    return df_c
   
-  def set_courseWork(self):
+  def set_courseWork(self,idCourse):
+    self.id_course = idCourse
     l = self.service.courses().courseWork().list(pageSize=30,courseId=self.id_course).execute()['courseWork']
     df = pd.DataFrame(l)
     df = df.loc[:,['id','title','dueDate']]
     df.dueDate = df.dueDate.apply(lambda x: x['year']*10000 + x['month']*100 + x['day'])
     self.courseWork = df.sort_values('dueDate',ignore_index=True);
+    return self.courseWork
   
   def set_students(self,token=""):
     r = self.service.courses().students().list(courseId=self.id_course,pageToken=token).execute()
@@ -91,7 +94,7 @@ class API:
     for i in range(len(self.courseWork)):
       self.students = self.students.merge(self.get_submissions(i_work=i),how="left",on="userId");
 
-  def get_answer(self,i_work=0,token=''):
+  def get_review(self,i_work=0,token=''):
     r = self.service.courses().courseWork().studentSubmissions().list(courseId=self.id_course,courseWorkId=self.courseWork.loc[i_work,'id'],pageToken=token).execute()
     ls = r['studentSubmissions']
     if token == "":
@@ -101,7 +104,3 @@ class API:
     else:
       if 'nextPageToken' in r: return [v.get("shortAnswerSubmission",{"answer":""}).get("answer","") for v in ls] + self.get_answer(i_work=i_work,token=r['nextPageToken'])
       else: return [v.get("shortAnswerSubmission",{"answer":""}).get("answer","") for v in ls]
-
-mApi = API()
-mApi.get_set_course('369311598141')
-mApi.set_courseWork()
