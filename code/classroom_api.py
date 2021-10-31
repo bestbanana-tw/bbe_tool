@@ -40,7 +40,7 @@ class CAPI:
             token.write(creds.to_json())
     self.service = build('classroom', 'v1', credentials=creds)
   
-  def get_course(self)
+  def get_course(self):
     r = self.service.courses().list(pageSize=30).execute()
     df_c = pd.DataFrame(r['courses'])
     df_c = df_c.loc[:,['id','name','section']]
@@ -98,9 +98,9 @@ class CAPI:
     r = self.service.courses().courseWork().studentSubmissions().list(courseId=self.id_course,courseWorkId=self.courseWork.loc[i_work,'id'],pageToken=token).execute()
     ls = r['studentSubmissions']
     if token == "":
-      if 'nextPageToken' in r: ls = [v.get("shortAnswerSubmission",{"answer":""}).get("answer","") for v in ls] + self.get_answer(i_work=i_work,token=r['nextPageToken'])
+      if 'nextPageToken' in r: ls = [v.get("shortAnswerSubmission",{"answer":""}).get("answer","") for v in ls] + self.get_review(i_work=i_work,token=r['nextPageToken'])
       else: ls = [v.get("shortAnswerSubmission",{"answer":""}).get("answer","") for v in ls]
       return ls
     else:
-      if 'nextPageToken' in r: return [v.get("shortAnswerSubmission",{"answer":""}).get("answer","") for v in ls] + self.get_answer(i_work=i_work,token=r['nextPageToken'])
+      if 'nextPageToken' in r: return [v.get("shortAnswerSubmission",{"answer":""}).get("answer","") for v in ls] + self.get_review(i_work=i_work,token=r['nextPageToken'])
       else: return [v.get("shortAnswerSubmission",{"answer":""}).get("answer","") for v in ls]
