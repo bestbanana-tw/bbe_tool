@@ -1,4 +1,4 @@
-# from jieba_bbe.code.classroom_api import CAPI
+# from bbe_tool.code.classroom_api import CAPI
 # from importlib import reload
 # reload(CAPI)
 # mApi = CAPI("/content/drive/MyDrive/course/1101/token.json","/content/drive/MyDrive/course/1101/credentials.json")
